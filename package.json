@@ -1,0 +1,32 @@
+{
+  "name": "@actualwave/weak-storage",
+  "version": "0.0.1",
+  "description": "WeakStorage and WeakRefMap are based on WeakRef objects allowing to store values as weak references.",
+  "main": "dist/weak-storage.umd.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/burdiuz/js-weak-storage.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/burdiuz/js-weak-storage/issues"
+  },
+  "homepage": "https://github.com/burdiuz/js-weak-storage#readme",
+  "devDependencies": {
+    "@babel/preset-env": "^7.9.5",
+    "@babel/preset-typescript": "^7.9.0",
+    "@rollup/plugin-typescript": "^4.0.0",
+    "@types/jest": "^25.2.1",
+    "jest": "^25.3.0",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
+  }
+}
