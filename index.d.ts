@@ -1,4 +1,5 @@
-export interface WeakValueMap {
+export declare class WeakValueMap {
+  constructor(autoVerify?: boolean);
   readonly size: number;
 
   keys(): IterableIterator<any>;
@@ -13,6 +14,7 @@ export interface WeakValueMap {
   verify(): void;
 }
 
-export interface WeakStorage extends WeakValueMap {
+export declare class WeakStorage extends WeakValueMap {
+  constructor(autoVerify?: boolean);
   getKey(value: any): any;
 }
