@@ -1,6 +1,6 @@
 {
   "name": "@actualwave/weak-storage",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "WeakStorage and WeakRefMap are based on WeakRef objects allowing to store values as weak references.",
   "main": "dist/weak-storage.umd.js",
   "module": "index.js",

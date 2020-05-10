@@ -1,4 +1,4 @@
-export interface IWeakRef<T> {
+export interface IWeakRef<T = any> {
   new (value: T): IWeakRef<T>;
   deref(): T;
 }

@@ -2,14 +2,27 @@ import { IWeakRef } from './IWeakRef';
 import { KeysIterator } from './KeysIterator';
 import { ValuesIterator } from './ValuesIterator';
 import { EntriesIterator } from './EntitiesIterator';
+import { IFinalizationRegistry } from './IFinalizationRegistry';
 
 declare const WeakRef: IWeakRef<any>;
+declare const FinalizationRegistry: IFinalizationRegistry<any>;
 
 export class WeakValueMap {
   private map: Map<any, IWeakRef<any>>;
+  private finalizer: IFinalizationRegistry;
 
-  constructor() {
+  constructor(autoVerify = true) {
     this.map = new Map();
+
+    if (autoVerify) {
+      this.finalizer = new FinalizationRegistry((key) => {
+        const ref = this.map.get(key);
+
+        if (!ref || !ref.deref()) {
+          this.map.delete(key);
+        }
+      });
+    }
   }
 
   get size(): number {

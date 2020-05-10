@@ -3,8 +3,9 @@ import { WeakValueMap } from './WeakValueMap';
 export class WeakStorage extends WeakValueMap {
   private byValues: WeakMap<any, any>;
 
-  constructor() {
-    super();
+  constructor(autoVerify?: boolean) {
+    super(autoVerify);
+
     this.byValues = new WeakMap();
   }
 

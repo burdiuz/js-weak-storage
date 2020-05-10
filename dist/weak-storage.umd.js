@@ -85,8 +85,16 @@
     }
 
     class WeakValueMap {
-        constructor() {
+        constructor(autoVerify = true) {
             this.map = new Map();
+            if (autoVerify) {
+                this.finalizer = new FinalizationRegistry((key) => {
+                    const ref = this.map.get(key);
+                    if (!ref || !ref.deref()) {
+                        this.map.delete(key);
+                    }
+                });
+            }
         }
         get size() {
             return this.map.size;
@@ -138,8 +146,8 @@
     }
 
     class WeakStorage extends WeakValueMap {
-        constructor() {
-            super();
+        constructor(autoVerify) {
+            super(autoVerify);
             this.byValues = new WeakMap();
         }
         set(key, value) {
