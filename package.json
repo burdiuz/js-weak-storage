@@ -1,9 +1,9 @@
 {
   "name": "@actualwave/weak-storage",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "WeakStorage and WeakRefMap are based on WeakRef objects allowing to store values as weak references.",
-  "main": "dist/weak-storage.umd.js",
-  "module": "index.js",
+  "main": "index.js",
+  "module": "index.es.js",
   "types": "index.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.js",

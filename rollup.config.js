@@ -8,6 +8,10 @@ export default {
       format: 'cjs',
     },
     {
+      file: 'index.es.js',
+      format: 'es',
+    },
+    {
       name: 'WeakStorage',
       file: 'dist/weak-storage.umd.js',
       format: 'umd',
