@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 
 export default {
-  input: 'source/index.ts',
+  input: 'src/index.ts',
   output: [
     {
       file: 'index.js',
@@ -17,5 +17,5 @@ export default {
       format: 'umd',
     },
   ],
-  plugins: [typescript()],
+  plugins: [typescript({ declaration: false, declarationDir: undefined })],
 };

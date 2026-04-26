@@ -1,1 +1,7 @@
 node_modules
+.history/
+dist/
+index.js
+index.es.js
+index.d.ts
+.DS_Store
