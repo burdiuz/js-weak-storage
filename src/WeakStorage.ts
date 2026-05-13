@@ -1,11 +1,12 @@
 import { WeakValueMap } from './WeakValueMap';
+import { IFinalizationRegistryConstructor } from './IFinalizationRegistry';
 
 export class WeakStorage<K = any, V extends object = object> extends WeakValueMap<K, V> {
   // Reverse index: value → key, for O(1) key lookup given a value
   private byValues: WeakMap<V, K>;
 
-  constructor(autoCleanup?: boolean) {
-    super(autoCleanup);
+  constructor(FinalizationRegistryClass?: IFinalizationRegistryConstructor | null) {
+    super(FinalizationRegistryClass as IFinalizationRegistryConstructor | null);
     this.byValues = new WeakMap();
   }
 

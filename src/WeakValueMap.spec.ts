@@ -12,14 +12,37 @@ describe('WeakValueMap', () => {
       expect(map.approximateSize).toBe(0);
     });
 
-    it('should create a FinalizationRegistry when autoCleanup=true (default)', () => {
-      new WeakValueMap(true);
+    it('should create a FinalizationRegistry using the global by default', () => {
+      new WeakValueMap();
       expect(getRegistry()).toBeDefined();
     });
 
-    it('should NOT create a FinalizationRegistry when autoCleanup=false', () => {
-      new WeakValueMap(false);
+    it('should NOT create a FinalizationRegistry when FinalizationRegistryClass=null', () => {
+      new WeakValueMap(null);
       expect(getRegistry()).toBeUndefined();
+    });
+
+    it('should warn and not create a registry when FinalizationRegistry is absent from the environment', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      (global as any).FinalizationRegistry = undefined;
+      new WeakValueMap();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('FinalizationRegistry'));
+      expect(getRegistry()).toBeUndefined();
+      warnSpy.mockRestore();
+    });
+
+    it('should use a custom FinalizationRegistryClass when provided', () => {
+      const registrations: Array<{ value: object; key: unknown }> = [];
+      const CustomRegistry = class {
+        constructor(_cb: (key: unknown) => void) {}
+        register(value: object, key: unknown) {
+          registrations.push({ value, key });
+        }
+      };
+      const map = new WeakValueMap(CustomRegistry as any);
+      map.set('k', { x: 1 });
+      expect(registrations).toHaveLength(1);
+      expect(registrations[0].key).toBe('k');
     });
   });
 
@@ -44,7 +67,7 @@ describe('WeakValueMap', () => {
     });
 
     it('should register the value with the finalizer', () => {
-      const map = new WeakValueMap(true);
+      const map = new WeakValueMap();
       const value = { x: 1 };
       map.set('key', value);
       const registry = getRegistry()!;
@@ -52,8 +75,8 @@ describe('WeakValueMap', () => {
       expect(registry.registrations[0].key).toBe('key');
     });
 
-    it('should NOT register with finalizer when autoCleanup=false', () => {
-      const map = new WeakValueMap(false);
+    it('should NOT register with finalizer when FinalizationRegistryClass=null', () => {
+      const map = new WeakValueMap(null);
       map.set('key', { x: 1 });
       expect(getRegistry()).toBeUndefined();
     });
@@ -212,7 +235,7 @@ describe('WeakValueMap', () => {
 
     // ── BUG REGRESSION: was called `size` and counted dead refs as alive ──
     it('[regression] approximateSize may count GC-collected entries until cleanup runs', () => {
-      const map = new WeakValueMap(true);
+      const map = new WeakValueMap();
       const value = { temp: true };
       map.set('k', value);
       tracker.simulateGC(value);
@@ -276,7 +299,7 @@ describe('WeakValueMap', () => {
 
   describe('auto-cleanup via FinalizationRegistry', () => {
     it('should delete the entry when finalizer fires for a collected ref', () => {
-      const map = new WeakValueMap(true);
+      const map = new WeakValueMap();
       const value = { temp: true };
       map.set('k', value);
       tracker.simulateGC(value);
@@ -287,7 +310,7 @@ describe('WeakValueMap', () => {
     it('should NOT delete entry if the key was reused with a new live value', () => {
       // Guard against the "key reuse" race: GC fires for old value, but
       // the key has already been reassigned to a new live value.
-      const map = new WeakValueMap(true);
+      const map = new WeakValueMap();
       const old = { old: true };
       map.set('k', old);
       tracker.simulateGC(old);
@@ -305,7 +328,7 @@ describe('WeakValueMap', () => {
 
   describe('verify', () => {
     it('should remove GC-collected entries from the internal map', () => {
-      const map = new WeakValueMap(false); // no auto-cleanup
+      const map = new WeakValueMap(null); // null disables auto-cleanup
       const alive = { keep: true };
       const dead = { gone: true };
       map.set('alive', alive);
@@ -318,7 +341,7 @@ describe('WeakValueMap', () => {
     });
 
     it('should be a no-op when all entries are alive', () => {
-      const map = new WeakValueMap(false);
+      const map = new WeakValueMap(null);
       map.set('a', { x: 1 });
       map.set('b', { y: 2 });
       map.verify();
@@ -326,7 +349,7 @@ describe('WeakValueMap', () => {
     });
 
     it('should leave map empty when all entries are collected', () => {
-      const map = new WeakValueMap(false);
+      const map = new WeakValueMap(null);
       const v1 = { x: 1 };
       const v2 = { y: 2 };
       map.set('a', v1);

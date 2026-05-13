@@ -12,10 +12,9 @@ describe('WeakStorage', () => {
       expect(store.approximateSize).toBe(0);
     });
 
-    it('should pass autoCleanup to parent WeakValueMap', () => {
-      // Just ensure it constructs without error in both modes
-      expect(() => new WeakStorage(true)).not.toThrow();
-      expect(() => new WeakStorage(false)).not.toThrow();
+    it('should accept FinalizationRegistryClass and pass it to parent', () => {
+      expect(() => new WeakStorage()).not.toThrow();
+      expect(() => new WeakStorage(null)).not.toThrow();
     });
   });
 

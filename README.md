@@ -53,21 +53,24 @@ A drop-in replacement for `Map` where **values** are weakly referenced. Keys can
 ### Constructor
 
 ```ts
-new WeakValueMap(autoCleanup?: boolean)
+new WeakValueMap(FinalizationRegistryClass?: IFinalizationRegistryConstructor | null)
 ```
 
 | Option | Default | Description |
 |---|---|---|
-| `autoCleanup` | `true` | Registers a `FinalizationRegistry` that removes stale map entries when a value is collected. Disable for environments without `FinalizationRegistry` support or for manual cleanup via `verify()`. |
+| `FinalizationRegistryClass` | `globalThis.FinalizationRegistry` | Constructor used to create the internal `FinalizationRegistry` that removes stale entries when a value is collected. Pass `null` to disable auto-cleanup and manage it manually via `verify()`. If the global `FinalizationRegistry` is not available (e.g. Hermes / React Native), a console warning is emitted and auto-cleanup is skipped. |
 
 ```js
 import { WeakValueMap } from '@actualwave/weak-storage';
 
-// With auto-cleanup (default) — stale keys are removed automatically
+// With auto-cleanup (default) — uses globalThis.FinalizationRegistry
 const map = new WeakValueMap();
 
 // Without auto-cleanup — use verify() to prune manually
-const manual = new WeakValueMap(false);
+const manual = new WeakValueMap(null);
+
+// Custom FinalizationRegistry implementation
+const custom = new WeakValueMap(MyFinalizationRegistry);
 ```
 
 ### `set(key, value): this`
@@ -159,11 +162,11 @@ map.approximateSize; // reflects only live entries
 ### `verify(): void`
 
 Rebuilds the internal map, discarding any entries whose values have been collected. Useful when:
-- `autoCleanup` is disabled and you want to reclaim memory explicitly.
+- Auto-cleanup is disabled (`null` passed to the constructor) and you want to reclaim memory explicitly.
 - You need `approximateSize` to reflect the true live count.
 
 ```js
-const map = new WeakValueMap(false); // no auto-cleanup
+const map = new WeakValueMap(null); // no auto-cleanup
 
 // ... time passes, some values get collected ...
 
@@ -257,7 +260,7 @@ get('k')
   └─ map.get('k').deref()   → obj if alive, undefined if collected
 
 [GC runs, obj is collected]
-  └─ FinalizationRegistry fires → map.delete('k')  (if autoCleanup=true)
+  └─ FinalizationRegistry fires → map.delete('k')  (when FinalizationRegistryClass is set)
 ```
 
 ### Key reuse guard

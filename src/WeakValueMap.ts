@@ -4,19 +4,25 @@ import { KeysIterator } from './KeysIterator';
 import { ValuesIterator } from './ValuesIterator';
 import { EntriesIterator } from './EntriesIterator';
 
-// Type the globals as constructor types, not instance types
 declare const WeakRef: IWeakRefConstructor;
-declare const FinalizationRegistry: IFinalizationRegistryConstructor;
 
 export class WeakValueMap<K = any, V extends object = object> {
   private map: Map<K, IWeakRef<V>>;
   private finalizer: IFinalizationRegistry<K> | undefined;
 
-  constructor(autoCleanup = true) {
+  constructor(
+    FinalizationRegistryClass: IFinalizationRegistryConstructor | null = (globalThis as any).FinalizationRegistry,
+  ) {
     this.map = new Map();
 
-    if (autoCleanup) {
-      this.finalizer = new FinalizationRegistry((key: K) => {
+    const registryClass = FinalizationRegistryClass as IFinalizationRegistryConstructor | null | undefined;
+
+    if (registryClass === undefined) {
+      console.warn(
+        'WeakValueMap: FinalizationRegistry is not available in this environment. Stale entries will not be removed automatically.',
+      );
+    } else if (registryClass) {
+      this.finalizer = new registryClass((key: K) => {
         const ref = this.map.get(key);
 
         // Only delete if the ref is truly gone — guard against key reuse
@@ -51,9 +57,7 @@ export class WeakValueMap<K = any, V extends object = object> {
   set(key: K, value: V): this {
     this.map.set(key, new WeakRef(value));
 
-    if (this.finalizer) {
-      this.finalizer.register(value, key);
-    }
+    this.finalizer?.register(value, key);
 
     return this;
   }
@@ -88,7 +92,7 @@ export class WeakValueMap<K = any, V extends object = object> {
 
   /**
    * Rebuilds the internal map retaining only entries whose values are still alive.
-   * Useful when `autoCleanup` is disabled or when you need an accurate `approximateSize`.
+   * Useful when no FinalizationRegistryClass was provided or when you need an accurate `approximateSize`.
    */
   verify(): void {
     const map = new Map<K, IWeakRef<V>>();

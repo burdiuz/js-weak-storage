@@ -62,11 +62,11 @@ import type {
 ### Constructor
 
 ```ts
-new WeakValueMap(autoCleanup?: boolean)  // default: true
-new WeakStorage(autoCleanup?: boolean)   // default: true
+new WeakValueMap(FinalizationRegistryClass?: IFinalizationRegistryConstructor | null)
+new WeakStorage(FinalizationRegistryClass?: IFinalizationRegistryConstructor | null)
 ```
 
-`autoCleanup: true` (default) registers a `FinalizationRegistry` that removes map entries automatically when their values are collected. Set to `false` to manage cleanup manually via `verify()`.
+Default is `globalThis.FinalizationRegistry`. When provided, it is used to register cleanup callbacks that remove entries automatically when their values are collected. Pass `null` to disable auto-cleanup and manage it manually via `verify()`. If the global `FinalizationRegistry` is absent (e.g. Hermes / React Native), a `console.warn` is emitted and auto-cleanup is skipped.
 
 ### Method signatures
 
@@ -81,7 +81,7 @@ forEach(cb: (value: V, key: K, map: this) => void): void  // skips dead entries
 keys(): IterableIterator<K>           // live keys only
 values(): IterableIterator<V>         // live values only
 entries(): IterableIterator<[K, V]>   // live [key, value] pairs only
-verify(): void                        // prune dead entries, accurate approximateSize after
+verify(): void                        // prune dead entries; approximateSize is accurate after
 readonly approximateSize: number      // may include stale entries, see below
 
 // WeakStorage only
@@ -164,7 +164,7 @@ store.getKey(requestObj);  // undefined
 ### Manual cleanup with verify()
 
 ```ts
-const map = new WeakValueMap(false); // no auto-cleanup
+const map = new WeakValueMap(null); // no auto-cleanup
 
 // Prune on demand (e.g., before a size-gated operation):
 map.verify();
